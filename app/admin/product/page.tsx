@@ -32,7 +32,6 @@ const ProductPage = async ({
   const search = searchParams.search ? searchParams.search.toString() : ``;
   const product: IProduct[] = await getProduct(search);
 
-  
   const category = (cat: string): React.ReactNode => {
     if (cat === "FOOD") {
       return (
@@ -41,7 +40,7 @@ const ProductPage = async ({
         </span>
       );
     }
-    if (cat === "SNACK") {
+    if (cat === "ITEMS") {
       return (
         <span className="bg-indigo-100 text-white text-sm font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-red-telkom-hover dark:textindigo-300">
           Snack
@@ -57,13 +56,13 @@ const ProductPage = async ({
 
   return (
     <div>
-      <div className="m-2 bg-white rounded-lg p-3 border-t-4 border-t-primary shadow-md">
+      <div className="m-2 bg-white rounded-lg p-6 border-t-primary shadow-md">
         <h4 className="text-xl font-bold text-red-telkom-hover mb-2">
           Product Data
         </h4>
         <p className="text-sm text-secondary text-red-telkom-hover mb-4">
-          This page displays product data, allowing menus to view details, search,
-          and manage product items by adding, editing, or deleting them.
+          This page displays product data, allowing menus to view details,
+          search, and manage product items by adding, editing, or deleting them.
         </p>
         <div className="flex justify-between items-center mb-4">
           {/* searchbar */}
@@ -104,21 +103,25 @@ const ProductPage = async ({
                       Name
                     </small>{" "}
                     <br />
-                    <p className="text-color-product font-bold">{data.name}</p>
+                    <p className="text-color-product font-bold text-rose-500">
+                      {data.name}
+                    </p>
                   </div>
                   <div className="w-full md:w-1/12 p-2">
                     <small className="text-sm font-bold text-red-telkom-hover">
                       Price
                     </small>{" "}
                     <br />
-                    <p className="text-color-product font-bold">{data.price}</p>
+                    <p className="text-color-product font-bold text-rose-500">
+                      {data.price}
+                    </p>
                   </div>
                   <div className="w-full md:w-5/12 p-2">
                     <small className="text-sm font-bold text-red-telkom-hover">
                       Description
                     </small>{" "}
                     <br />
-                    <p className="text-color-product font-bold">
+                    <p className="text-color-product font-bold text-rose-500">
                       {data.description}
                     </p>
                   </div>
@@ -136,7 +139,7 @@ const ProductPage = async ({
                     <br />
                     <div className="flex gap-1">
                       <EditProduct selectedProduct={data} />
-                      <DeleteProduct selectedProduct={data}/>
+                      <DeleteProduct selectedProduct={data} />
                     </div>
                   </div>
                 </div>

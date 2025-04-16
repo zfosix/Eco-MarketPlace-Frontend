@@ -44,7 +44,7 @@ const TransaksiPage = () => {
     }, []);
 
     return (
-        <div className="flex min-h-screen bg-transparent backdrop-blur-lg border bg-opacity-60 bg-white border-primary rounded-[30px]">
+        <div className="m-2 bg-white rounded-lg p-6 border-t-primary shadow-md">
             <main className="flex-1 p-4">
                 <div className="my-4 justify-center space-x-4">
                     <h2 className="pb-2"><b>MONTHLY SALES</b></h2>

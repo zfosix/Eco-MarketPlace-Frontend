@@ -2,15 +2,11 @@
 import { ReactNode, useEffect, useState } from "react";
 import Image from "next/image";
 import ProductItem from "./productItem";
-import Logo from "../../public/image/eco-market-logo-1.png";
-import Profile from "../../public/image/albi.jpg";
+import Logo from "../../public/image/foslogo.jpg"; // Sesuaikan dengan logo yang digunakan
 import { useRouter } from "next/navigation";
-import { FormEvent } from "react";
-import { ToastContainer, toast } from "react-toastify";
 import { getCookies, removeCookies } from "@/lib/client-cookie";
 import { IUser } from "@/app/types";
 import { BASE_IMAGE_PROFILE } from "@/global";
-import Cookies from "js-cookie";
 
 type ProductType = {
   id: string;
@@ -18,21 +14,17 @@ type ProductType = {
   path: string;
   label: string;
 };
-type ManagerProp = {
+
+type SidebarProps = {
   children: ReactNode;
-  id: string;
   title: string;
-  user: IUser | null
+  user: IUser | null;
   productList: ProductType[];
 };
 
-const Sidebar = ({ children, id, title, productList, user }: ManagerProp) => {
-  const [isShow, setIsShow] = useState<boolean>(false);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+const Sidebar = ({ children, productList, user }: SidebarProps) => {
+  const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
   const [userName, setUserName] = useState<string>("");
-  const toggleDropdown = () => {
-    setIsDropdownOpen(!isDropdownOpen);
-  };
 
   useEffect(() => {
     const name = getCookies("name");
@@ -40,174 +32,143 @@ const Sidebar = ({ children, id, title, productList, user }: ManagerProp) => {
       setUserName(name);
     }
   }, []);
+
   const router = useRouter();
+
   const handleLogout = () => {
     removeCookies("token");
     removeCookies("id");
     removeCookies("name");
     removeCookies("role");
+    removeCookies("cart");
     router.replace(`/login`);
   };
 
   return (
-    <div className="w-full min-h-dvh  bg-white">
-      {/* header section */}
-      <header className="flex justify-between items-center p-4 bg-red-telkom shadow-md ai-style-change-1 sticky top-0 z-10">
-        <div className="relative flex gap-2">
-          <button
-            onMouseEnter={() => setIsShow(true)}
-            onMouseLeave={() => setIsShow(false)}
-            className="flex items-center space-x-2 text-white"
-          >
+    <div className="flex min-h-screen bg-gray-100">
+      {/* Sidebar Section */}
+      <div className="fixed top-0 left-0 h-full w-64 bg-white border-r border-gray-200 flex flex-col z-30">
+        {/* Logo Section */}
+        <div className="p-4 flex items-center gap-2 border-b border-gray-200">
+          <Image
+            src={Logo}
+            alt="Eco Market Logo"
+            width={32}
+            height={32}
+            className="rounded-full"
+          />
+          <h2 className="text-lg font-bold text-gray-800">Eco Market</h2>
+        </div>
+
+        {/* Menu Section */}
+        <div className="flex-1 overflow-y-auto px-4">
+          {/* Menu Group */}
+          {productList.length > 0 && (
+            <>
+              <div className="mt-2 mb-1">
+                <span className="text-xs font-semibold text-gray-400 uppercase">
+                  Menu
+                </span>
+              </div>
+              {productList.map((product, index) => (
+                <ProductItem
+                  icon={product.icon}
+                  label={product.label}
+                  path={product.path}
+                  key={`keyProduct${index}`}
+                />
+              ))}
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Main Content Section */}
+      <div className="flex-1 ml-64">
+        {/* Header Section */}
+        <header className="flex justify-between items-center px-6 py-2 bg-white shadow-md sticky top-0 z-20">
+          {/* Search Bar */}
+          <div className="relative w-1/4">
+            <input
+              type="text"
+              placeholder="Search"
+              className="w-full pl-10 pr-4 py-2 rounded-lg bg-gray-100 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
               strokeWidth={2}
               stroke="currentColor"
-              className="w-8 h-8 text-white hover:text-red-400" //garis tiga pojokan dashboard
+              className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2"
             >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                d="M3.75 5.25h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5m16.5 4.5h16.5"
+                d="M21 21l-4.35-4.35M16.5 10.5a6 6 0 11-12 0 6 6 0 0112 0z"
               />
             </svg>
-          </button>
-          <h1 className="font-bold text-xl text-white]">{title}</h1>
-          <button>
-            {" "}
-            {setIsShow && (
-              <div
-                className=""
-                onMouseEnter={() => setIsShow(true)}
-                onMouseLeave={() => setIsShow(false)}
+          </div>
+
+          {/* Profile Section */}
+          <div className="relative">
+            <button
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100"
+            >
+              <Image
+                src={`${BASE_IMAGE_PROFILE}/${user?.profile_picture || "default.jpg"}`}
+                alt="Profile"
+                width={32}
+                height={32}
+                className="rounded-full"
+              />
+              <span className="text-sm font-semibold text-gray-800">{userName || "User"}</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                className={`w-4 h-4 text-gray-500 transform transition-transform ${
+                  isDropdownOpen ? "rotate-180" : ""
+                }`}
               >
-                <div
-                  className={`flex flex-col w-2/4 md:w-1/3 lg:w-1/6 h-full fixed top-0 right-full transition-all duration-300 case-in-out z-50 bg-red-telkom border-r border-red-telkom shadow-[5px_0px_15px_rgba(0,0,0,0.1)] rounded-r-3xl ${
-                    isShow ? `translate-x-full` : ``
-                  }`}
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+                />
+              </svg>
+            </button>
+            {isDropdownOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-2 z-10 transition-all duration-200 ease-out">
+                <a
+                  href="/profile"
+                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-100 hover:text-blue-600"
                 >
-                  {/* close button */}
-                  <div className="ml-auto p-2 "></div>
-                  {/* end close button */}
-                  {/* logo section */}
-                  <div className="mb-3 w-full flex justify-center">
-                    <div className="flex items-center space-x-2">
-                      <Image
-                        src={Logo}
-                        alt="Logo"
-                        width={60}
-                        height={60}
-                        className="rounded-full"
-                      />
-                      <h1 className="text-2xl font-bold text-white">Eco Market</h1>
-                    </div>
-                  </div>
-                  {/* end logo section */}
-                  {/* user section */}
-                  <div
-                    className="w-full mt-5 mb-3 bg-primary text-white p-5 flex gap-2 items-center" //akun
-                  >
-                    <Image
-                      src={`${BASE_IMAGE_PROFILE}/${user?.profile_picture}`}
-                      alt="Profile"
-                      width={45}
-                      height={45}
-                      className="rounded-full"
-                    />.
-                    <div className="text-md font-semibold">
-                      {userName}
-                    </div>
-                  </div>
-                  {/* end user section */}
-                  {/* product section */}
-                  <div className="w-full p-2 overflow-y-auto">
-                    <div className="px-5">
-                      {productList.map((product, index) => (
-                        <ProductItem
-                          icon={product.icon}
-                          label={product.label}
-                          path={product.path}
-                          active={product.id === id}
-                          key={`keyProduct${index}`}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                  {/* product section */}
-                </div>
+                  Profile
+                </a>
+                <a
+                  href="/settings"
+                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-100 hover:text-blue-600"
+                >
+                  Settings
+                </a>
+                <button
+                  onClick={handleLogout}
+                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-100 hover:text-blue-600"
+                >
+                  Logout
+                </button>
               </div>
             )}
-          </button>
-        </div>
+          </div>
+        </header>
 
-      
-        <div className="relative">
-          <button
-            onMouseEnter={() => setIsDropdownOpen(true)} // tampilkan dropdown saat hover
-            onMouseLeave={() => setIsDropdownOpen(false)} // sembunyikan dropdown saat mouse meninggalkan button
-            className="flex items-center space-x-2 text-white"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.8}
-              stroke="currentColor"
-              className="size-8"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75"
-              />
-            </svg>
-
-            <button className="font-bold">Logout</button>
-          </button>
-          {isDropdownOpen && (
-            <div
-              className="absolute right-0 mt-0 w-56 bg-teal-200 rounded-md shadow-lg py-1 z-10 top-full opacity-0 translate-y-2 transition-all duration-300 ease-out" //kotak drobox
-              onMouseEnter={() => setIsDropdownOpen(true)} // pastikan dropdown tetap terbuka saat mouse berada di dalam dropdown
-              onMouseLeave={() => setIsDropdownOpen(false)} // sembunyikan dropdown saat mouse keluar dari dropdown
-              style={{
-                opacity: isDropdownOpen ? 1 : 0,
-                transform: isDropdownOpen
-                  ? "translateY(0)"
-                  : "translateY(10px)",
-              }}
-            >
-              <a
-                href="#"
-                className="block px-4 py-2 text-md font-semibold text-teal-800 hover:bg-teal-300"
-              >
-                Profile
-              </a>
-              <a
-                href="#"
-                className="block px-4 py-2 text-md font-semibold text-teal-800 hover:bg-teal-300"
-              >
-                Settings
-              </a>
-              <a
-                href="#"
-                className="block px-4 py-2 text-md font-semibold text-teal-800 hover:bg-teal-300"
-                onClick={handleLogout}
-              >
-                Logout
-              </a>
-            </div>
-          )}
-        </div>
-      </header>
-      {/* end header section */}
-      {/* content section */}
-      <div className="p-4">{children}</div>
-      {/* end content section */}
-      {/* sidebar section */}
-
-      {/* end sidebar section */}
+        {/* Content Section */}
+        <div className="p-4">{children}</div>
+      </div>
     </div>
   );
 };

@@ -49,7 +49,7 @@ const UserPage = async ({
 
   return (
     <div>
-      <div className="m-2 bg-white rounded-lg p-3 border-t-4 border-t-primary shadow-md">
+      <div className="m-2 bg-white rounded-lg p-6 border-t-primary shadow-md">
         <h4 className="text-xl font-bold text-red-telkom-hover mb-2">
           User Data
         </h4>
@@ -96,14 +96,14 @@ const UserPage = async ({
                       Name
                     </small>{" "}
                     <br />
-                    <p className="text-color-product font-bold">{data.name}</p>
+                    <p className="text-color-product font-bold text-rose-500">{data.name}</p>
                   </div>
                   <div className="w-full md:w-5/12 p-2">
                     <small className="text-sm font-bold text-red-telkom-hover">
                       Email
                     </small>{" "}
                     <br />
-                    <p className="text-color-product font-bold">{data.email}</p>
+                    <p className="text-color-product font-bold text-rose-500">{data.email}</p>
                   </div>
 
                   <div className="w-full md:w-2/12 p-2">

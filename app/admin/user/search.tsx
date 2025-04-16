@@ -14,7 +14,7 @@ const Search = ({ url, search }: Props) => {
 
   const handleSearch = (e: KeyboardEvent<HTMLInputElement>) => {
     e.preventDefault();
-    router.push(`${url}?search=${keyword}`)
+    router.push(`${url}?search=${keyword}`);
   };
   return (
     <input
@@ -23,12 +23,11 @@ const Search = ({ url, search }: Props) => {
       value={keyword}
       onChange={(e) => setKeyword(e.target.value)}
       className={
-        "text-sm w-full rounded-md p-2 bg-slate-100 border border-secondary focus:border-primary focus:outline-none"
+        "w-full pl-10 pr-4 py-2 rounded-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-red-500 transition duration-200 ease-in-out bg-white text-red-telkom-hover placeholder-gray-400"
       }
       placeholder="Search"
       onKeyUp={handleSearch}
     />
   );
 };
-export default Search
-
+export default Search;

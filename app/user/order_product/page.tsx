@@ -167,7 +167,7 @@ const ProductPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-center justify-between mb-6">
         <div className="relative w-full sm:w-auto sm:flex-1 max-w-md mb-4 sm:mb-0">
-          <Search url={`/cashier/pesan_makanan`} search={search} />
+          <Search url={`/user/order_product`} search={search} />
         </div>
       </div>
 

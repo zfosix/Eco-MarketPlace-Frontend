@@ -1,136 +1,137 @@
 "use client";
-import { BASE_API_URL } from "@/global";
-import { storeCookie } from "@/lib/client-cookie";
-import axios from "axios";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
+import { BASE_API_URL } from "@/global"; // Pastikan file ini ada
+import { storeCookie } from "@/lib/client-cookie"; // Pastikan file ini ada
+import axios from "axios";
+import { useRouter } from "next/navigation";
 import { ToastContainer, toast } from "react-toastify";
-
-
+import "react-toastify/dist/ReactToastify.css"; // Impor CSS untuk Toastify
 
 const LoginPage = () => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
-  const router = useRouter();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const router = useRouter(); // Untuk redirect
+
   const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
     try {
-      e.preventDefault();
       const url = `${BASE_API_URL}/user/login`;
-      const payload = JSON.stringify({ email: email, password });
+      const payload = JSON.stringify({ email, password });
+
       const { data } = await axios.post(url, payload, {
         headers: { "Content-Type": "application/json" },
       });
-      if (data.status == true) {
+
+      if (data.status === true) {
         toast(data.message, {
           hideProgressBar: true,
           containerId: `toastLogin`,
           type: "success",
           autoClose: 2000,
         });
+
+        // Simpan data ke cookie
         storeCookie("token", data.token);
         storeCookie("id", data.data.id);
         storeCookie("name", data.data.name);
         storeCookie("role", data.data.role);
-        let role = data.data.role;
-        if (role === `ADMIN`)
-          setTimeout(() => router.replace(`/admin/dashboard`), 1000);
-        else if (role === `USER`)
-          setTimeout(() => router.replace(`/user/dashboard`), 1000);
-      } else
+
+        const role = data.data.role;
+
+        // Redirect berdasarkan role
+        setTimeout(() => {
+          if (role === "ADMIN") {
+            router.replace(`/admin/dashboard`);
+          } else if (role === "USER") {
+            router.replace(`/user/dashboard`);
+          }
+        }, 1000);
+      } else {
         toast(data.message, {
           hideProgressBar: true,
           containerId: `toastLogin`,
           type: "warning",
         });
+      }
     } catch (error) {
-      console.log(error);
-      toast(`Something wrong`, {
+      console.error("Login error:", error);
+      toast("Something went wrong", {
         hideProgressBar: true,
         containerId: `toastLogin`,
         type: "error",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
-  return (
-    <div className="w-screen h-screen bg-login bg-cover">
-      <ToastContainer containerId={`toastLogin`} />
-      <div className="w-full h-full bg-backdrop-login flex justify-center items-center p-5">
-        <div className="w-full md:w-6/12 lg:w-4/12 min-h-[600px] border rounded-xl bg-white p-5 flex flex-col items-center relative">
-          <div className="absolute bottom-0 left-0 w-full py-2 text-center">
-            <small className="text-red-telkom">Copyright @2024</small>
-          </div>
-          <Image
-            alt="moklet-app"
-            width={150}
-            height={100}
-            src={`/image/foslogo.jpg`}
-            className="h-auto my-10 rounded-md "
-          />
-          <h4 className="text-2xl uppercase font-semibold mb-4 text-black">
-            Eco Market
-          </h4>
-          <span className="text-sm text-slate-800 font-medium text-center">
-           Ready Semua Jenis Barang
-          </span>
 
-          <form onSubmit={handleSubmit} className="w-full my-10">
-            <div className="flex w-full my-4">
-              <div className="bg-red-telkom rounded-l-md p-3 border border-gray-500">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="size-4"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
-                  />
-                </svg>
-              </div>
+  return (
+    <div className="min-h-screen bg-green-100 flex items-center justify-center p-4">
+      {/* Tambahkan ToastContainer untuk menampilkan notifikasi */}
+      <ToastContainer containerId={`toastLogin`} />
+      <div className="w-full max-w-4xl bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col md:flex-row">
+        {/* Sisi Kiri: Ilustrasi */}
+        <div className="w-full md:w-1/2 bg-green-50 p-8">
+          <div className="relative h-64 md:h-full w-full">
+            <Image
+              alt="Eco Market Illustration"
+              src="/image/ilustrasi.png"
+              fill
+              className="object-cover rounded-t-2xl md:rounded-l-2xl md:rounded-tr-none"
+              priority
+            />
+          </div>
+        </div>
+
+        {/* Sisi Kanan: Form Login */}
+        <div className="w-full md:w-1/2 p-6 sm:p-8 flex flex-col justify-center">
+          <div className="text-center mb-6">
+            <Image
+              alt="Eco-Market Logo"
+              width={80}
+              height={60}
+              src="/image/icon.png"
+              className="h-auto mx-auto mb-4"
+            />
+            <h2 className="text-3xl font-bold text-gray-800">
+              Login to Your Account
+            </h2>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
               <input
-                type="text"
-                className="border p-2 grow rounded-r-md focus:outline-none focus:ring-primary focus:border-primary border-gray-500 text-red-text "
+                type="email"
+                id="email"
+                name="email"
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm text-gray-900 placeholder-gray-500 transition-all duration-200"
+                placeholder="Email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Email"
-                id={`email`}
+                required
               />
             </div>
-
-            <div className="flex w-full my-4 border rounded-md border-gray-500">
-              <div className="bg-red-telkom rounded-l-md p-3">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="size-4"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"
-                  />
-                </svg>
-              </div>
+            <div className="relative">
               <input
-                type={showPassword ? `text` : `password`}
-                className="border p-2 grow focus:outline-none focus:ring-primary focus:border-primary border-gray-500 text-red-text"
+                type={showPassword ? "text" : "password"}
+                id="password"
+                name="password"
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm text-gray-900 placeholder-gray-500 transition-all duration-200"
+                placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Password"
-                id={`password-industri-app`}
+                required
               />
-              <div
-                className="cursor-pointer bg-red-telkom rounded-r-md p-3 border border-gray-500"
+              <button
+                type="button"
                 onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
               >
                 {showPassword ? (
                   <svg
@@ -139,12 +140,12 @@ const LoginPage = () => {
                     viewBox="0 0 24 24"
                     strokeWidth={1.5}
                     stroke="currentColor"
-                    className="size-4"
+                    className="w-5 h-5"
                   >
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88"
+                      d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88"
                     />
                   </svg>
                 ) : (
@@ -154,35 +155,84 @@ const LoginPage = () => {
                     viewBox="0 0 24 24"
                     strokeWidth={1.5}
                     stroke="currentColor"
-                    className="size-4"
+                    className="w-5 h-5"
                   >
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"
+                      d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"
                     />
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
                     />
                   </svg>
                 )}
-              </div>
+              </button>
             </div>
-
-            <div className="my-10">
+            <div className="flex justify-end">
+              <a
+                href="#"
+                className="text-sm font-medium text-green-600 hover:text-green-700 transition-colors"
+              >
+                Forgot your password?
+              </a>
+            </div>
+            <div>
               <button
                 type="submit"
-                className="bg-red-800 hover:bg-primary uppercase w-full p-2 rounded-md text-bold text-white"
+                disabled={isLoading}
+                className="w-full flex justify-center py-3 px-4 rounded-lg bg-green-500 text-white font-medium text-base hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-400 disabled:bg-green-300 disabled:cursor-not-allowed transition-all duration-200"
               >
-                Login
+                {isLoading ? (
+                  <svg
+                    className="animate-spin h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                ) : (
+                  "Sign in"
+                )}
               </button>
             </div>
           </form>
+
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600">
+              By signing in, you agree to Eco Market's{" "}
+              <a href="#" className="text-green-600 hover:text-green-700">
+                Terms of Service
+              </a>{" "}
+              and{" "}
+              <a href="#" className="text-green-600 hover:text-green-700">
+                Privacy Policy
+              </a>
+              .
+            </p>
+            <p className="text-xs text-gray-500 mt-2">
+              Copyright © 2024 Eco Market. All rights reserved.
+            </p>
+          </div>
         </div>
       </div>
     </div>
   );
 };
+
 export default LoginPage;
