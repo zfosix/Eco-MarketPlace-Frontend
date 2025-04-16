@@ -58,8 +58,6 @@ const Dashboard = () => {
   }, []);
 
   return (
-    <div>
-
           <div className="m-2 bg-white rounded-lg p-6 border-t-primary shadow-md">
             {/* <div className="px-6 py-6 sm:px-0"> */}
               {/* <div className="rounded-lg bg-white p-6 shadow-lg"> */}
@@ -134,7 +132,6 @@ const Dashboard = () => {
             {/* </div> */}
           </div>
  
-    </div>
   );
 };
 

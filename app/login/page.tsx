@@ -1,19 +1,28 @@
 "use client";
+
 import Image from "next/image";
 import { FormEvent, useState } from "react";
-import { BASE_API_URL } from "@/global"; // Pastikan file ini ada
-import { storeCookie } from "@/lib/client-cookie"; // Pastikan file ini ada
+import { BASE_API_URL } from "@/global";
+import { storeCookie } from "@/lib/client-cookie";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css"; // Impor CSS untuk Toastify
+import dynamic from "next/dynamic";
+import { toast } from "react-toastify";
+
+// Dynamically import ToastContainer to avoid SSR issues
+const ToastContainer = dynamic(() => import("react-toastify").then((mod) => mod.ToastContainer), {
+  ssr: false, // Disable server-side rendering for this component
+});
+
+// Import Toastify CSS
+import "react-toastify/dist/ReactToastify.css";
 
 const LoginPage = () => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const router = useRouter(); // Untuk redirect
+  const router = useRouter();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -21,21 +30,20 @@ const LoginPage = () => {
 
     try {
       const url = `${BASE_API_URL}/user/login`;
-      const payload = JSON.stringify({ email, password });
+      const payload = { email, password }; // No need to stringify manually
 
       const { data } = await axios.post(url, payload, {
         headers: { "Content-Type": "application/json" },
       });
 
       if (data.status === true) {
-        toast(data.message, {
+        toast.success(data.message, {
           hideProgressBar: true,
-          containerId: `toastLogin`,
-          type: "success",
+          containerId: "toastLogin",
           autoClose: 2000,
         });
 
-        // Simpan data ke cookie
+        // Store data in cookies
         storeCookie("token", data.token);
         storeCookie("id", data.data.id);
         storeCookie("name", data.data.name);
@@ -43,27 +51,25 @@ const LoginPage = () => {
 
         const role = data.data.role;
 
-        // Redirect berdasarkan role
+        // Redirect based on role
         setTimeout(() => {
           if (role === "ADMIN") {
-            router.replace(`/admin/dashboard`);
+            router.replace("/admin/dashboard");
           } else if (role === "USER") {
-            router.replace(`/user/dashboard`);
+            router.replace("/user/dashboard");
           }
         }, 1000);
       } else {
-        toast(data.message, {
+        toast.warning(data.message, {
           hideProgressBar: true,
-          containerId: `toastLogin`,
-          type: "warning",
+          containerId: "toastLogin",
         });
       }
     } catch (error) {
       console.error("Login error:", error);
-      toast("Something went wrong", {
+      toast.error("Something went wrong", {
         hideProgressBar: true,
-        containerId: `toastLogin`,
-        type: "error",
+        containerId: "toastLogin",
       });
     } finally {
       setIsLoading(false);
@@ -72,10 +78,11 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen bg-green-100 flex items-center justify-center p-4">
-      {/* Tambahkan ToastContainer untuk menampilkan notifikasi */}
-      <ToastContainer containerId={`toastLogin`} />
+      {/* ToastContainer for notifications */}
+      <ToastContainer containerId="toastLogin" />
+
       <div className="w-full max-w-4xl bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col md:flex-row">
-        {/* Sisi Kiri: Ilustrasi */}
+        {/* Left Side: Illustration */}
         <div className="w-full md:w-1/2 bg-green-50 p-8">
           <div className="relative h-64 md:h-full w-full">
             <Image
@@ -88,7 +95,7 @@ const LoginPage = () => {
           </div>
         </div>
 
-        {/* Sisi Kanan: Form Login */}
+        {/* Right Side: Login Form */}
         <div className="w-full md:w-1/2 p-6 sm:p-8 flex flex-col justify-center">
           <div className="text-center mb-6">
             <Image
@@ -98,9 +105,7 @@ const LoginPage = () => {
               src="/image/icon.png"
               className="h-auto mx-auto mb-4"
             />
-            <h2 className="text-3xl font-bold text-gray-800">
-              Login to Your Account
-            </h2>
+            <h2 className="text-3xl font-bold text-gray-800">Login to Your Account</h2>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -199,12 +204,12 @@ const LoginPage = () => {
                       r="10"
                       stroke="currentColor"
                       strokeWidth="4"
-                    ></circle>
+                    />
                     <path
                       className="opacity-75"
                       fill="currentColor"
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
+                    />
                   </svg>
                 ) : (
                   "Sign in"
@@ -215,7 +220,7 @@ const LoginPage = () => {
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
-              By signing in, you agree to Eco Market's{" "}
+              By signing in, you agree to Eco Market&apos;s{" "}
               <a href="#" className="text-green-600 hover:text-green-700">
                 Terms of Service
               </a>{" "}

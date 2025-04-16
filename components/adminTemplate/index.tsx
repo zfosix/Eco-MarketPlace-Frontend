@@ -41,7 +41,7 @@ const adminTemplate = async ({
 
   return (
     <div className="w-full min-h-dvh bg-slate-50">
-      <Sidebar productList={productList} title={title} id={id} user={profile}>
+      <Sidebar productList={productList} title={title} user={profile}>
         {children}
       </Sidebar>
     </div>

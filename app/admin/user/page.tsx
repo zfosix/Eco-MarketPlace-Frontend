@@ -1,24 +1,22 @@
 import { IUser } from "@/app/types";
 import { getCookies } from "@/lib/server-cookie";
-import { BASE_API_URL, BASE_IMAGE_PRODUCT, BASE_IMAGE_PROFILE } from "@/global";
+import { BASE_API_URL, BASE_IMAGE_PROFILE } from "@/global";
 import { get } from "@/lib/api-bridge";
 import { AlertInfo } from "@/components/Alert";
 import AddUser from "./addUser";
 import Image from "next/image";
-import { useSearchParams } from "next/navigation";
 import Search from "./search";
 import EditUser from "../user/editUser";
 import DeleteUser from "./deleteUser";
-const getUser = async (search: string): Promise<IUser[]> => {
+
+const getUsers = async (search: string): Promise<IUser[]> => {
   try {
-    const TOKEN = await getCookies("token");
+    const token = await getCookies("token");
     const url = `${BASE_API_URL}/user?search=${search}`;
-    const { data } = await get(url, TOKEN);
-    let result: IUser[] = [];
-    if (data?.status) result = [...data.data];
-    return result;
+    const { data } = await get(url, token);
+    return data?.status ? [...data.data] : [];
   } catch (error) {
-    console.log(error);
+    console.error("Error fetching users:", error);
     return [];
   }
 };
@@ -28,109 +26,89 @@ const UserPage = async ({
 }: {
   searchParams: { [key: string]: string | string[] | undefined };
 }) => {
-  const search = searchParams.search ? searchParams.search.toString() : ``;
-  const product: IUser[] = await getUser(search);
-  const category = (cat: string): React.ReactNode => {
-    if (cat === "ADMIN") {
-      return (
-        <span className="bg-blue-100] text-white text-sm font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-red-telkom-hover dark:text-blue300">
-          ADMIN
-        </span>
-      );
-    }
-    if (cat === "USER") {
-      return (
-        <span className="bg-indigo-100 text-white text-sm font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-red-telkom-hover dark:textindigo-300">
-          USER
-        </span>
-      );
-    }
+  const search = searchParams.search?.toString() || "";
+  const users: IUser[] = await getUsers(search);
+
+  const renderRoleBadge = (role: string) => {
+    const baseStyles = "text-xs font-medium px-3 py-1 rounded-full";
+    const roleStyles =
+      role === "ADMIN"
+        ? "bg-blue-100 text-blue-800 dark:bg-blue-600 dark:text-white"
+        : "bg-indigo-100 text-indigo-800 dark:bg-indigo-600 dark:text-white";
+
+    return <span className={`${baseStyles} ${roleStyles}`}>{role}</span>;
   };
 
   return (
-    <div>
       <div className="m-2 bg-white rounded-lg p-6 border-t-primary shadow-md">
-        <h4 className="text-xl font-bold text-red-telkom-hover mb-2">
-          User Data
-        </h4>
-        <p className="text-sm text-secondary text-red-telkom-hover mb-4">
-          This page displays user data, allowing product to view details, search,
-          and manage product items by adding, editing, or deleting them.
+        <h4 className="text-2xl font-bold text-gray-800 mb-2">User Data</h4>
+        <p className="text-sm text-gray-600 mb-6">
+          This page displays user data, allowing admins to view details, search, and manage users by adding, editing, or deleting them.
         </p>
-        <div className="flex justify-between items-center mb-4">
-          {/* searchbar */}
-          <div className="flex items-center w-full max-w-md flex-grow text-red-telkom-hover">
-            <Search url={`/admin/user`} search={search} />
+
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+          {/* Search Bar */}
+          <div className="w-full sm:w-auto flex-grow max-w-md">
+            <Search url="/admin/user" search={search} />
           </div>
-          {/* Add product Button */}
-          <div className="ml-4">
-            <AddUser />
-          </div>
+          {/* Add User Button */}
+          <AddUser />
         </div>
-        {product.length == 0 ? (
-          <AlertInfo title="informasi">No data Available</AlertInfo>
+
+        {users.length === 0 ? (
+          <AlertInfo title="Information">No users available</AlertInfo>
         ) : (
-          <>
-            <div className="m-2">
-              {product.map((data, index) => (
-                <div
-                  key={`keyPrestasi${index}`}
-                  className={`flex flex-wrap shadow m-2`}
-                >
-                  <div className="w-full md:w-1/12 p-2">
-                    <small className="text-sm font-bold text-red-telkom-hover">
-                      Picture
-                    </small>
-                    <br />
-                    <Image
-                      width={50}
-                      height={50}
-                      src={`${BASE_IMAGE_PROFILE}/${data.profile_picture}`}
-                      className="rounded-sm overflowhidden"
-                      alt="preview"
-                      unoptimized
-                    />
-                  </div>
-                  <div className="w-full md:w-2/12 p-2">
-                    <small className="text-sm font-bold text-red-telkom-hover">
-                      Name
-                    </small>{" "}
-                    <br />
-                    <p className="text-color-product font-bold text-rose-500">{data.name}</p>
-                  </div>
-                  <div className="w-full md:w-5/12 p-2">
-                    <small className="text-sm font-bold text-red-telkom-hover">
-                      Email
-                    </small>{" "}
-                    <br />
-                    <p className="text-color-product font-bold text-rose-500">{data.email}</p>
-                  </div>
+          <div className="grid gap-4">
+            {users.map((user, index) => (
+              <div
+                key={`user-${index}`}
+                className="flex flex-col sm:flex-row items-center bg-gray-50 rounded-lg shadow-sm p-4 gap-4"
+              >
+                {/* Profile Picture */}
+                <div className="w-full sm:w-1/12 text-center">
+                  <span className="text-sm font-semibold text-gray-700">Picture</span>
+                  <Image
+                    width={50}
+                    height={50}
+                    src={`${BASE_IMAGE_PROFILE}/${user.profile_picture}`}
+                    className="rounded-full mx-auto mt-2"
+                    alt={`${user.name}'s profile picture`}
+                    unoptimized
+                  />
+                </div>
 
-                  <div className="w-full md:w-2/12 p-2">
-                    <small className="text-sm font-bold text-red-telkom-hover">
-                      Role
-                    </small>{" "}
-                    <br />
-                    {category(data.role)}
-                  </div>
-                  <div className="w-full md:w-1/12 p-2">
-                    <small className="text-sm font-bold text-red-telkom-hover">
-                      Action
-                    </small>
-                    <br />
-                    <div className="flex gap-1">
-                      <EditUser selectedUser={data} />
-                      <DeleteUser selectedUser={data} />
+                {/* Name */}
+                <div className="w-full sm:w-2/12">
+                  <span className="text-sm font-semibold text-gray-700">Name</span>
+                  <p className="text-sm font-medium text-gray-900 mt-1">{user.name}</p>
+                </div>
 
-                    </div>
+                {/* Email */}
+                <div className="w-full sm:w-5/12">
+                  <span className="text-sm font-semibold text-gray-700">Email</span>
+                  <p className="text-sm font-medium text-gray-900 mt-1">{user.email}</p>
+                </div>
+
+                {/* Role */}
+                <div className="w-full sm:w-2/12">
+                  <span className="text-sm font-semibold text-gray-700">Role</span>
+                  <div className="mt-1">{renderRoleBadge(user.role)}</div>
+                </div>
+
+                {/* Actions */}
+                <div className="w-full sm:w-2/12 text-center">
+                  <span className="text-sm font-semibold text-gray-700">Actions</span>
+                  <div className="flex justify-center gap-2 mt-2">
+                    <EditUser selectedUser={user} />
+                    <DeleteUser selectedUser={user} />
                   </div>
                 </div>
-              ))}
-            </div>
-          </>
+              </div>
+            ))}
+          </div>
         )}
       </div>
-    </div>
   );
 };
+
 export default UserPage;

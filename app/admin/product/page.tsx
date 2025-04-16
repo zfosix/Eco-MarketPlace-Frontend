@@ -5,21 +5,18 @@ import { get } from "@/lib/api-bridge";
 import { AlertInfo } from "@/components/Alert";
 import AddProduct from "./addProduct";
 import Image from "next/image";
-import { useSearchParams } from "next/navigation";
 import Search from "./search";
 import EditProduct from "./editProduct";
 import DeleteProduct from "./deleteProduct";
 
-const getProduct = async (search: string): Promise<IProduct[]> => {
+const getProducts = async (search: string): Promise<IProduct[]> => {
   try {
-    const TOKEN = await getCookies("token");
+    const token = await getCookies("token");
     const url = `${BASE_API_URL}/product?search=${search}`;
-    const { data } = await get(url, TOKEN);
-    let result: IProduct[] = [];
-    if (data?.status) result = [...data.data];
-    return result;
+    const { data } = await get(url, token);
+    return data?.status ? [...data.data] : [];
   } catch (error) {
-    console.log(error);
+    console.error("Error fetching products:", error);
     return [];
   }
 };
@@ -29,126 +26,132 @@ const ProductPage = async ({
 }: {
   searchParams: { [key: string]: string | string[] | undefined };
 }) => {
-  const search = searchParams.search ? searchParams.search.toString() : ``;
-  const product: IProduct[] = await getProduct(search);
+  const search = searchParams.search?.toString() || "";
+  const products: IProduct[] = await getProducts(search);
 
-  const category = (cat: string): React.ReactNode => {
-    if (cat === "FOOD") {
-      return (
-        <span className="bg-blue-100] text-white text-sm font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-red-telkom-hover dark:text-blue300">
-          Food
-        </span>
-      );
+  const renderCategoryBadge = (category: string) => {
+    const baseStyles = "text-xs font-medium px-3 py-1 rounded-full";
+    let categoryStyles = "";
+    let label = category;
+
+    switch (category) {
+      case "FOOD":
+        categoryStyles =
+          "bg-blue-100 text-blue-800 dark:bg-blue-600 dark:text-white";
+        label = "Food";
+        break;
+      case "ITEMS":
+        categoryStyles =
+          "bg-indigo-100 text-indigo-800 dark:bg-indigo-600 dark:text-white";
+        label = "Snack";
+        break;
+      default:
+        categoryStyles =
+          "bg-purple-100 text-purple-800 dark:bg-purple-600 dark:text-white";
+        label = "Drink";
     }
-    if (cat === "ITEMS") {
-      return (
-        <span className="bg-indigo-100 text-white text-sm font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-red-telkom-hover dark:textindigo-300">
-          Snack
-        </span>
-      );
-    }
-    return (
-      <span className="bg-purple-100 text-white text-sm font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-pink-400 dark:text-purple300">
-        Drink
-      </span>
-    );
+
+    return <span className={`${baseStyles} ${categoryStyles}`}>{label}</span>;
   };
 
   return (
-    <div>
+
       <div className="m-2 bg-white rounded-lg p-6 border-t-primary shadow-md">
-        <h4 className="text-xl font-bold text-red-telkom-hover mb-2">
-          Product Data
-        </h4>
-        <p className="text-sm text-secondary text-red-telkom-hover mb-4">
-          This page displays product data, allowing menus to view details,
-          search, and manage product items by adding, editing, or deleting them.
+        <h4 className="text-2xl font-bold text-gray-800 mb-2">Product Data</h4>
+        <p className="text-sm text-gray-600 mb-6">
+          This page displays product data, allowing admins to view details,
+          search, and manage products by adding, editing, or deleting them.
         </p>
-        <div className="flex justify-between items-center mb-4">
-          {/* searchbar */}
-          <div className="flex items-center w-full max-w-md flex-grow text-red-telkom-hover">
-            <Search url={`/admin/product`} search={search} />
+
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+          {/* Search Bar */}
+          <div className="w-full sm:w-auto flex-grow max-w-md">
+            <Search url="/admin/product" search={search} />
           </div>
-          {/* Add Menu Button */}
-          <div className="ml-4">
-            <AddProduct />
-          </div>
+          {/* Add Product Button */}
+          <AddProduct />
         </div>
-        {product.length == 0 ? (
-          <AlertInfo title="informasi">No data Available</AlertInfo>
+
+        {products.length === 0 ? (
+          <AlertInfo title="Information">No products available</AlertInfo>
         ) : (
-          <>
-            <div className="m-2">
-              {product.map((data, index) => (
-                <div
-                  key={`keyPrestasi${index}`}
-                  className={`flex flex-wrap shadow m-2`}
-                >
-                  <div className="w-full md:w-1/12 p-2">
-                    <small className="text-sm font-bold text-red-telkom-hover">
-                      Picture
-                    </small>
-                    <br />
-                    <Image
-                      width={50}
-                      height={50}
-                      src={`${BASE_IMAGE_PRODUCT}/${data.picture}`}
-                      className="rounded-sm overflowhidden"
-                      alt="preview"
-                      unoptimized
-                    />
-                  </div>
-                  <div className="w-full md:w-2/12 p-2">
-                    <small className="text-sm font-bold text-red-telkom-hover">
-                      Name
-                    </small>{" "}
-                    <br />
-                    <p className="text-color-product font-bold text-rose-500">
-                      {data.name}
-                    </p>
-                  </div>
-                  <div className="w-full md:w-1/12 p-2">
-                    <small className="text-sm font-bold text-red-telkom-hover">
-                      Price
-                    </small>{" "}
-                    <br />
-                    <p className="text-color-product font-bold text-rose-500">
-                      {data.price}
-                    </p>
-                  </div>
-                  <div className="w-full md:w-5/12 p-2">
-                    <small className="text-sm font-bold text-red-telkom-hover">
-                      Description
-                    </small>{" "}
-                    <br />
-                    <p className="text-color-product font-bold text-rose-500">
-                      {data.description}
-                    </p>
-                  </div>
-                  <div className="w-full md:w-1/12 p-2">
-                    <small className="text-sm font-bold text-red-telkom-hover">
-                      Category
-                    </small>{" "}
-                    <br />
-                    {category(data.category)}
-                  </div>
-                  <div className="w-full md:w-2/12 p-2">
-                    <small className="text-sm font-bold text-red-telkom-hover">
-                      Action
-                    </small>
-                    <br />
-                    <div className="flex gap-1">
-                      <EditProduct selectedProduct={data} />
-                      <DeleteProduct selectedProduct={data} />
-                    </div>
+          <div className="grid gap-4">
+            {products.map((product, index) => (
+              <div
+                key={`product-${index}`}
+                className="flex flex-col sm:flex-row items-center bg-gray-50 rounded-lg shadow-sm p-4 gap-4"
+              >
+                {/* Product Picture */}
+                <div className="w-full sm:w-1/12 text-center">
+                  <span className="text-sm font-semibold text-gray-700">
+                    Picture
+                  </span>
+                  <Image
+                    width={50}
+                    height={50}
+                    src={`${BASE_IMAGE_PRODUCT}/${product.picture}`}
+                    className="rounded-md mx-auto mt-2"
+                    alt={`${product.name} product image`}
+                    unoptimized
+                  />
+                </div>
+
+                {/* Product Name */}
+                <div className="w-full sm:w-2/12">
+                  <span className="text-sm font-semibold text-gray-700">
+                    Name
+                  </span>
+                  <p className="text-sm font-medium text-gray-900 mt-1">
+                    {product.name}
+                  </p>
+                </div>
+
+                {/* Product Price */}
+                <div className="w-full sm:w-1/12">
+                  <span className="text-sm font-semibold text-gray-700">
+                    Price
+                  </span>
+                  <p className="text-sm font-medium text-gray-900 mt-1">
+                    ${product.price.toFixed(2)}
+                  </p>
+                </div>
+
+                {/* Product Description */}
+                <div className="w-full sm:w-5/12">
+                  <span className="text-sm font-semibold text-gray-700">
+                    Description
+                  </span>
+                  <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                    {product.description}
+                  </p>
+                </div>
+
+                {/* Product Category */}
+                <div className="w-full sm:w-1/12">
+                  <span className="text-sm font-semibold text-gray-700">
+                    Category
+                  </span>
+                  <div className="mt-1">
+                    {renderCategoryBadge(product.category)}
                   </div>
                 </div>
-              ))}
-            </div>
-          </>
+
+                {/* Actions */}
+                <div className="w-full sm:w-2/12 text-center">
+                  <span className="text-sm font-semibold text-gray-700">
+                    Actions
+                  </span>
+                  <div className="flex justify-center gap-2 mt-2">
+                    <EditProduct selectedProduct={product} />
+                    <DeleteProduct selectedProduct={product} />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </div>
-    </div>
   );
 };
+
 export default ProductPage;
